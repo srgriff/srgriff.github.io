@@ -1,4 +1,4 @@
-/* Reset and Base Styles */
+
 * {
   margin: 0;
   padding: 0;
@@ -12,14 +12,14 @@ body {
   background-color: #f8f9fa;
 }
 
-/* Mobile-First Layout */
+
 .about-container {
   max-width: 100%;
   margin: 0 auto;
   padding: 1rem;
 }
 
-/* Header Section */
+
 .about-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -49,7 +49,7 @@ body {
   opacity: 0.9;
 }
 
-/* Main Content Grid - Mobile: Single Column */
+
 .about-content {
   display: grid;
   grid-template-columns: 1fr;
@@ -177,20 +177,20 @@ body {
     font-size: 1.2rem;
   }
   
-  /* Desktop Grid Layout: 2 columns */
+ 
   .about-content {
     grid-template-columns: 2fr 1fr;
     gap: 2rem;
   }
   
-  /* Main content area */
+
   .main-content {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
   }
   
-  /* Sidebar content */
+
   .sidebar-content {
     display: flex;
     flex-direction: column;
@@ -203,7 +203,7 @@ body {
     font-size: 1.6rem;
   }
   
-  /* Skills layout adjustment */
+  
   .skills-container {
     gap: 0.8rem;
   }
@@ -214,8 +214,7 @@ body {
   }
   
 
-  
-  /* Contact info horizontal layout */
+ 
   .contact-info {
     flex-direction: row;
     flex-wrap: wrap;
@@ -230,7 +229,7 @@ body {
   
 
 
-/* Large Desktop Optimization */
+
 @media (min-width: 1200px) {
   .about-content {
     grid-template-columns: 3fr 1fr;
@@ -247,7 +246,7 @@ body {
   
 
 
-/* Accessibility and Animation Preferences */
+
 @media (prefers-reduced-motion: reduce) {
   .about-card {
     transition: none;
@@ -262,7 +261,7 @@ body {
   }
 }
 
-/* Print Styles */
+
 @media print {
   .about-container {
     max-width: 100%;
