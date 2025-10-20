@@ -4,24 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Me</title>
-     <link rel="stylesheet" href="./css/index.css">
-    
+    <link rel="stylesheet" href="./css/index.css">
+</head>
 <body>
     <div class="about-container">
-        <!-- Header Section -->
         <header class="about-header">
             <img src="picture.png" alt="Profile Picture" class="profile-image">
-            <div class="header-content">
-                <h1>Shannon Griffith</h1>
-                <p>Web Developer</p>
-            </div>
+            <h1>Shannon Griffith</h1>
+            <p>Web Developer</p>
         </header>
 
-        <!-- Main Content Area -->
+      
         <div class="about-content">
-            <!-- Main Content Column -->
+           
             <div class="main-content">
-                <!-- About Me Section -->
+             
                 <section class="about-card">
                     <h2>About Me</h2>
                     <p>
@@ -30,13 +27,17 @@
                     <p>
                        I have experience in word processing applications like Word, Powerpoint and social media marketing. For the last few years, I've been pursuing publishing books as a way to bring in extra cash as I took care of my children. I'm a self-starter and highly motivated to expand my horizons.
                     </p>
-                  
                 </section>
 
-          
+              
+                <section class="about-card">
+                    <h2>Featured Projects</h2>
+                    <div id="featured-projects" class="projects-list">
+                        <div class="loading">Loading projects...</div>
+                    </div>
                 </section>
 
-                <!-- Skills Section -->
+            
                 <section class="about-card">
                     <h2>Technical Skills</h2>
                     <p>Here are some of the technologies and tools I work with regularly:</p>
@@ -45,19 +46,15 @@
                         <span class="skill-tag">HTML5</span>
                         <span class="skill-tag">CSS</span>
                         <span class="skill-tag">Word Applications</span>
-                      
                         <span class="skill-tag">Social Media/SEO Marketing</span>
-                       
                         <span class="skill-tag">Git</span>
-                     
-                       
                     </div>
                 </section>
             </div>
 
-            <!-- Sidebar Content -->
+          
             <div class="sidebar-content">
-                <!-- Contact Information -->
+            
                 <section class="about-card">
                     <h2>Contact</h2>
                     <div class="contact-info">
@@ -75,21 +72,79 @@
                         </div>
                         <div class="contact-item">
                             <span class="contact-icon">💼</span>
-                          <span><a href="https://github.com/srgriff">GitHub</a></span> </div>
-                                <div class="contact-item">
-                            <span class="contact-icon">💼</span>
-                          <span><a href="/resume.html">Resume</a></span> </div>
-                                <div class="contact-item">
-                            <span class="contact-icon">💼</span>
-                          <span><a href="/projects.html">Projects Page</a></span>
+                            <span><a href="https://github.com/srgriff">GitHub</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📄</span>
+                            <span><a href="/resume.html">Resume</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">🚀</span>
+                            <span><a href="/projects.html">Projects Page</a></span>
                         </div>
                     </div>
                 </section>
-
-             
-               
             </div>
         </div>
     </div>
+
+    <script>
+        const githubUsername = 'srgriff';
+
+        async function fetchFeaturedProjects() {
+            const projectsContainer = document.getElementById('featured-projects');
+            
+            if (!projectsContainer) {
+                console.error('Projects container not found!');
+                return;
+            }
+
+            try {
+                const url = `https://api.github.com/users/${githubUsername}/repos?sort=updated&per_page=5`;
+                console.log('Fetching from:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+
+                const repos = await response.json();
+                console.log('Repos received:', repos);
+
+                if (repos.length === 0) {
+                    projectsContainer.innerHTML = '<p class="error">No public repositories found. Make sure your repos are public on GitHub!</p>';
+                    return;
+                }
+
+                projectsContainer.innerHTML = repos.map(repo => createProjectItem(repo)).join('');
+            } catch (error) {
+                console.error('Error fetching GitHub projects:', error);
+                projectsContainer.innerHTML = `<div class="error">Unable to load projects: ${error.message}</div>`;
+            }
+        }
+
+        function createProjectItem(repo) {
+            const language = repo.language || 'Not specified';
+            const stars = repo.stargazers_count || 0;
+            const updateDate = new Date(repo.updated_at).toLocaleDateString();
+
+            return `
+                <div class="project-item">
+                    <h3><a href="${repo.html_url}" target="_blank">${repo.name}</a></h3>
+                    <p class="project-description">${repo.description || 'No description available'}</p>
+                    <div class="project-meta">
+                        <span class="meta-badge">📝 ${language}</span>
+                        <span class="meta-badge">⭐ ${stars}</span>
+                        <span class="meta-badge">📅 ${updateDate}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+       
+        document.addEventListener('DOMContentLoaded', fetchFeaturedProjects);
+    </script>
 </body>
 </html>
