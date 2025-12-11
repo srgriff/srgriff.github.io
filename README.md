@@ -58,6 +58,11 @@ const USDA_API_KEY = 'your-api-key-here';
 - Right-click `index.html` → "Open with Live Server"
 
 
+### Future goals for this Project
+- Make serving sizes changable
+- Make buttons for most searched items
+- Make a goal editor for fiber/protein goals
+
 
 
 ##     When Using the Project
@@ -68,6 +73,14 @@ const USDA_API_KEY = 'your-api-key-here';
 4. Refresh page - data persists
 5. View dashboard - see charts
 
+***This project is also available on my github page: https://srgriff.github.io/dashboard.html*** and has it's own repo
+
+
+Has been tested via github page on opera(mobile), Edge via github page/live server, Chrome via page/live server
+
+
+
 ## 👤 Author
+
 
 Shannon Griffith - Code You Web Dev 2025 Capstone Project
