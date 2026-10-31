@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is it safe tonight? Plant weather check</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap">
+<style>
+:root{--bg:#f1f5ef;--surface:#fff;--ink:#16241b;--muted:#5a6b5f;--line:#d5dfd3;--hero:#12301f;--hero-ink:#eaf5ec;
+--ok:#1f7a45;--okbg:#dff2e4;--warn:#9a6a00;--warnbg:#fbefc9;--bad:#b3261e;--badbg:#fbdad6;--accent:#2f8f5b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1510;--surface:#16211a;--ink:#e6f0e8;--muted:#9bb0a0;--line:#26352b;--hero:#0a2616;--hero-ink:#eaf5ec;
+--ok:#6fd49a;--okbg:#17382a;--warn:#f0c55a;--warnbg:#3a3014;--bad:#ff8f86;--badbg:#431c19;--accent:#4fbf82}}
+:root[data-theme="dark"]{--bg:#0d1510;--surface:#16211a;--ink:#e6f0e8;--muted:#9bb0a0;--line:#26352b;--hero:#0a2616;--hero-ink:#eaf5ec;
+--ok:#6fd49a;--okbg:#17382a;--warn:#f0c55a;--warnbg:#3a3014;--bad:#ff8f86;--badbg:#431c19;--accent:#4fbf82}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+h1,h2{font-family:Fraunces,Georgia,serif;margin:0}
+h1{font-size:1.6rem}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 16px}
+input,select,button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+input{flex:1;min-width:160px}
+button{cursor:pointer}button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hero{background:var(--hero);color:var(--hero-ink);border-radius:14px;padding:22px;margin-bottom:16px}
+.hero .place{opacity:.8;font-size:.95rem}
+.hero .big{font-family:Fraunces,Georgia,serif;font-size:4.2rem;line-height:1;margin:6px 0}
+.hero .sub{opacity:.85}
+.nights{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap}
+.night{border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;border-radius:999px;padding:6px 12px;font-size:.9rem}
+.night[aria-pressed="true"]{background:var(--hero-ink);color:var(--hero)}
+.plants{display:grid;gap:10px}
+.plant{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.plant b{display:block}.plant small{color:var(--muted)}
+.tag{padding:4px 12px;border-radius:999px;font-weight:600;font-size:.9rem;white-space:nowrap}
+.safe .tag{background:var(--okbg);color:var(--ok)}.caution .tag{background:var(--warnbg);color:var(--warn)}.danger .tag{background:var(--badbg);color:var(--bad)}
+.tips{margin-top:18px;padding:14px;border-left:4px solid var(--accent);background:var(--surface);border-radius:0 8px 8px 0;color:var(--muted);font-size:.93rem}
+.add{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.add input[type=number]{flex:0 0 90px;min-width:0}
+#msg{color:var(--bad);min-height:1.4em}
+.empty{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>Is it safe for my plants tonight?</h1>
+<div class="top">
+  <input id="city" placeholder="City or ZIP (e.g. Louisville)" aria-label="City">
+  <button class="pri" id="go">Check weather</button>
+  <button id="loc">Use my location</button>
+  <select id="unit" aria-label="Units"><option value="F">°F</option><option value="C">°C</option></select>
+</div>
+<div id="msg" role="status"></div>
+<section id="hero" class="hero" hidden></section>
+<section>
+  <h2 style="font-size:1.2rem;margin:4px 0 10px">Your plants</h2>
+  <div id="plants" class="plants"></div>
+  <div class="add">
+    <select id="preset" aria-label="Add a plant"></select>
+    <button id="addp">Add plant</button>
+    <input id="cname" placeholder="Custom plant name" aria-label="Custom plant name">
+    <input id="cmin" type="number" placeholder="Min °F" aria-label="Lowest safe temperature in °F">
+    <button id="addc">Add custom</button>
+  </div>
+</section>
+<div class="tips">Cold-damage thresholds are general guidelines for houseplants, not guarantees. Plants outdoors or on a porch also need shelter from wind, frost and wet soil; bring tender ones inside when the low nears the caution line. Cold windowsills run several degrees colder than the room.</div>
+</main>
+<script>
+// caution = stress/slowed growth below this; danger = likely damage below this (all in °F)
+const PRESETS={
+ "ZZ plant":[55,45],"Snake plant":[55,45],"Pothos":[55,50],"Monstera":[60,50],"Peace lily":[60,50],
+ "Fiddle leaf fig":[60,50],"Rubber plant":[60,50],"Spider plant":[50,40],"Boston fern":[55,45],
+ "Aloe vera":[45,40],"Jade plant":[45,35],"Cast iron plant":[35,25],"Orchid (Phalaenopsis)":[60,55],"Succulents (general)":[45,35]
+};
+const $=id=>document.getElementById(id);
+let plants=[],place=null,nights=[],sel=0,unit="F";
+try{plants=JSON.parse(localStorage.getItem("plants")||"null")||[]}catch(e){}
+if(!plants.length)plants=[["ZZ plant",55,45],["Snake plant",55,45],["Monstera",60,50]];
+function save(){try{localStorage.setItem("plants",JSON.stringify(plants))}catch(e){}}
+$("preset").innerHTML=Object.keys(PRESETS).map(n=>`<option>${n}</option>`).join("");
+const toU=f=>unit==="F"?Math.round(f):Math.round((f-32)*5/9);
+function render(){
+  const box=$("plants");box.innerHTML="";
+  const low=nights[sel]?nights[sel].low:null;
+  plants.forEach((p,i)=>{
+    let cls="",txt="Check weather";
+    if(low!==null){cls=low<p[2]?"danger":low<p[1]?"caution":"safe";txt={danger:"Bring inside",caution:"Use caution",safe:"Safe"}[cls]}
+    const d=document.createElement("div");d.className="plant "+cls;
+    d.innerHTML=`<div><b></b><small>Stress below ${toU(p[1])}°${unit} · damage below ${toU(p[2])}°${unit}</small></div><div><span class="tag">${txt}</span> <button aria-label="Remove">✕</button></div>`;
+    d.querySelector("b").textContent=p[0];
+    d.querySelector("button").onclick=()=>{plants.splice(i,1);save();render()};
+    box.appendChild(d);
+  });
+  if(!plants.length)box.innerHTML='<p class="empty">No plants yet. Add one below.</p>';
+  const h=$("hero");
+  if(!nights.length){h.hidden=true;return}
+  h.hidden=false;const n=nights[sel];
+  h.innerHTML=`<div class="place"></div><div class="big">${toU(n.low)}°${unit}</div><div class="sub">Overnight low, ${n.label} (6 pm to 8 am). Now ${toU(place.now)}°${unit}.</div><div class="nights"></div>`;
+  h.querySelector(".place").textContent=place.name;
+  nights.forEach((x,i)=>{const b=document.createElement("button");b.className="night";b.setAttribute("aria-pressed",i===sel);b.textContent=x.label;b.onclick=()=>{sel=i;render()};h.querySelector(".nights").appendChild(b)});
+}
+async function load(lat,lon,name){
+  $("msg").textContent="Loading forecast…";
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&hourly=temperature_2m&temperature_unit=fahrenheit&forecast_days=4&timezone=auto`);
+    if(!r.ok)throw 0;const j=await r.json();
+    const t=j.hourly.time,v=j.hourly.temperature_2m,cur=j.current.time;
+    const map={};
+    t.forEach((s,i)=>{
+      const day=s.slice(0,10),h=+s.slice(11,13);
+      if(s<cur.slice(0,13)+":00"&&!(h<8))return;
+      let key=null;
+      if(h>=18)key=day;else if(h<8){const d=new Date(day+"T12:00:00");d.setDate(d.getDate()-1);key=d.toISOString().slice(0,10)}
+      if(!key||v[i]==null)return;
+      if(s<cur.slice(0,13)+":00")return;
+      (map[key]=map[key]||[]).push(v[i]);
+    });
+    const today=cur.slice(0,10);
+    nights=Object.keys(map).sort().slice(0,3).map(k=>({low:Math.min(...map[k]),label:k===today?"Tonight":new Date(k+"T12:00:00").toLocaleDateString(undefined,{weekday:"long"})}));
+    place={name,now:j.current.temperature_2m};sel=0;$("msg").textContent="";render();
+  }catch(e){$("msg").textContent="Couldn’t load the forecast. Check your connection and try again."}
+}
+async function search(){
+  const q=$("city").value.trim();if(!q)return;
+  $("msg").textContent="Finding location…";
+  try{
+    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1`);
+    const j=await r.json();
+    if(!j.results||!j.results.length){$("msg").textContent="No match for that place. Try a city name.";return}
+    const p=j.results[0];load(p.latitude,p.longitude,[p.name,p.admin1,p.country_code].filter(Boolean).join(", "));
+  }catch(e){$("msg").textContent="Couldn’t look up that place. Check your connection."}
+}
+$("go").onclick=search;$("city").onkeydown=e=>{if(e.key==="Enter")search()};
+$("loc").onclick=()=>{
+  if(!navigator.geolocation){$("msg").textContent="Location isn’t available in this browser. Type a city instead.";return}
+  navigator.geolocation.getCurrentPosition(p=>load(p.coords.latitude,p.coords.longitude,"Your location"),()=>{$("msg").textContent="Location access was blocked. Type a city instead."});
+};
+$("unit").onchange=e=>{unit=e.target.value;$("cmin").placeholder="Min °F";render()};
+$("addp").onclick=()=>{const n=$("preset").value;if(!plants.some(p=>p[0]===n)){plants.push([n,...PRESETS[n]]);save();render()}};
+$("addc").onclick=()=>{
+  const n=$("cname").value.trim(),m=parseFloat($("cmin").value);
+  if(!n||isNaN(m)){$("msg").textContent="Enter a plant name and its lowest safe temperature in °F.";return}
+  plants.push([n,m,m-8]);$("cname").value="";$("cmin").value="";$("msg").textContent="";save();render();
+};
+render();
+</script>
+</body>
+</html>
